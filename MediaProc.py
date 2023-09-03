@@ -1,3 +1,9 @@
+import os
+import re
+import pandas as pd
+import numpy as np
+
+
 class IMDB:
     def __init__(self, tbasic, ratings):
         basics = pd.read_csv(tbasic, sep='\t', low_memory=False)
