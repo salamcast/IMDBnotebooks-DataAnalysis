@@ -1,3 +1,7 @@
+# This code has been abandoned 
+
+this is my old work for loading the IMDB dataset into MySQL before I went back to School for Database Administration and Big Data Predictive Analysis. my focus has switched to using kaggle/JetBrains DataSpell and the DataSet files directly, it works much faster than when I ran the MySQL server on my PineBook Pro (now broken and gone).
+
 # IMDB Data Set structre: 
 
 https://www.imdb.com/interfaces/
