@@ -23,7 +23,7 @@ ALTER TABLE `movies_list` ADD FULLTEXT KEY `Dir` (`Dir`);
 ALTER TABLE `movies_list` ADD FULLTEXT KEY `url` (`url`);
 
 --- custom tables ---
-load data infile '/export/IMDBmedia/movies_list.csv' 
+load data infile '/export/obsolete-IMDB-MySQL/movies_list.csv'
     into table `movies_list` 
     fields terminated by ',' 
     optionally enclosed by '"'

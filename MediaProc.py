@@ -4,6 +4,105 @@ import pandas as pd
 import numpy as np
 
 
+# plot videos
+def MovieAvgRating(DF, fig=(15, 10)):
+    return DF.plot.line(
+        x='primaryTitle',
+        y=['averageRating', 'numVotes'],
+        secondary_y='numVotes',
+        #        stacked=True ,
+        rot=90,
+        figsize=fig,
+        xticks=range(0, DF['primaryTitle'].count()),
+
+    )
+
+
+def MovieRuntime(DF, fig=(15, 10)):
+    return DF.plot.line(
+        x='primaryTitle',
+        y=['minutes', 'averageRating'],
+        secondary_y='averageRating',
+        rot=90,
+        figsize=fig,
+        xticks=range(0, DF['primaryTitle'].count())
+    )
+
+
+def MovieHexBin(DF, fig=(15, 10), title="Movies hexbin"):
+    DF.plot.hexbin(
+        C='minutes',
+        y='averageRating',
+        x='numVotes',
+        # reduce_C_function=np.sum,
+        gridsize=10,
+        cmap="viridis",
+        title=title,
+        figsize=fig
+    )
+
+
+# TV Shows
+def group_tvshows(df):
+    ep = df.groupby('TVShow').E.count()
+    mins = df.groupby('TVShow').minutes.sum()
+    rate = df.groupby('TVShow').averageRating.sum()
+    votes = df.groupby('TVShow').numVotes.sum()
+    enum = pd.DataFrame(ep)
+    enum['minutes'] = mins
+    enum['averageRating'] = rate / enum['E']
+    enum['numVotes'] = votes
+    enum = enum.sort_values(by="averageRating").reset_index()
+
+    return enum
+
+
+def TVShowAvgRating(DF, fig=(15, 10), x='episodeTitle'):
+    return DF.plot.line(
+        x=x,
+        y=['averageRating', 'numVotes'],
+        secondary_y='numVotes',
+        #        stacked=True ,
+        rot=90,
+        figsize=fig,
+        xticks=range(0, DF['E'].count()),
+        fontsize=10.0,
+        xlabel=x,
+        #        ylabel=[ 'averageRating', 'numVotes' ]
+
+    )
+
+
+def TVShowRuntime(DF, fig=(15, 10), x='episodeTitle'):
+    return DF.plot.line(
+        x=x,
+        y=['minutes', 'averageRating'],
+        secondary_y='averageRating',
+        rot=90,
+        figsize=fig,
+        xticks=range(0, DF['E'].count()),
+        fontsize=10.0,
+        xlabel=x,
+        #        ylabel='minutes'
+    )
+
+
+def TVShowHexBin(DF, fig=(15, 10), title="TVShow hexbin", c='minutes', y='averageRating', x='numVotes'):
+    DF.plot.hexbin(
+        C=c,
+        y=y,
+        x=x,
+        reduce_C_function=np.sum,
+        gridsize=10,
+        cmap="viridis",
+        title=title,
+        figsize=fig,
+        xlabel=x,
+        ylabel=y,
+
+    )
+
+
 class IMDB:
     def __init__(self, tbasic, ratings):
         basics = pd.read_csv(tbasic, sep='\t', low_memory=False)
@@ -64,9 +163,9 @@ class IMDB:
     def filter_tv(self):
         self.Videos = self.tbasics.loc[
             (self.tbasics['titleType'] != "tvSeries") & (self.tbasics['titleType'] != "tvEpisode")
-        ].rename(columns={
+            ].rename(columns={
             "startYear": "year",
-            "runtimeMinutes":"minutes"
+            "runtimeMinutes": "minutes"
         }).drop(["endYear"], axis=1)
 
     def set_tvshows(self, episodes):
@@ -96,37 +195,54 @@ class IMDB:
         }).set_index('tconst'), on="tconst").drop([
             'parentTconst'
         ], axis=1)
+        self.filter_tv()
 
+    def search_video_df(self, search, ttype='movie', votes=100000):
+        df = self.Videos.loc[
+            self.Videos["primaryTitle"].str.contains(search) &
+            (self.Videos['titleType'] == ttype) &
+            (self.Videos['numVotes'] > votes)
+            ].dropna().drop(columns=['titleType', 'originalTitle', 'isAdult']).sort_values(by='year')
+        df['minutes'] = df['minutes'].astype('int64', errors='ignore')
+        df['year'] = df['year'].astype('int64', errors='ignore')
+        return df
 
+    def search_tvshow_df(self, search, votes=100):
+        df = self.TVShow.loc[
+            (self.TVShow.numVotes > votes) &
+            self.TVShow["TVShow"].str.contains(search, regex=True)
+            ].drop(columns=[
+            'titleType', 'originalTitle', 'isAdult',
+            "year", "originalEpisode", "genres", "endYear"
+        ]).sort_values(by='startYear').dropna()
+        df['startYear'] = df['startYear'].astype('int64', errors='ignore')
+        df['minutes'] = df['minutes'].astype('int64', errors='ignore')
+        df['episodeTitle'] = df['S'].astype('str') + 'x' + df['E'].astype('str') + ' ' + df['episodeTitle']
+        df['S'] = df['S'].astype('int64', errors='ignore')
+        df['E'] = df['E'].astype('int64', errors='ignore')
+        return df
 
-
+    ####################################
+    # Not used below, will consider removing
     # Get DataFrame filtered to titleType in the IMDB dataset
     # some videos/movies might have a title type you might not expect, like video instead of movie
-    def get_tvMiniSeries(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "tvMiniSeries")]
-
-    def get_tvSpecial(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "tvSpecial")]
-
-    def get_tvPilot(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "tvPilot")]
-
-    def get_video(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "video")]
-
-    def get_tvPilot(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "videoGame")]
-
+    # def get_tvMiniSeries(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvMiniSeries")]
+    # def get_tvSpecial(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvSpecial")]
+    # def get_tvPilot(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvPilot")]
+    # def get_video(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "video")]
+    # def get_tvPilot(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "videoGame")]
     # movies
-    def get_tvMovie(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "tvMovie")]
-
-    def get_movie(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "movie")]
-
+    # def get_tvMovie(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvMovie")]
+    # def get_movie(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "movie")]
     # shorts
-    def get_tvShort(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "tvShort")]
-
-    def get_short(self):
-        return self.tbasics.loc[(self.tbasics['titleType'] == "short")]
+    # def get_tvShort(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvShort")]
+    # def get_short(self):
+    #    return self.tbasics.loc[(self.tbasics['titleType'] == "short")]
