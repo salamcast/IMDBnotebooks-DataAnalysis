@@ -118,12 +118,6 @@ class IMDB:
     def find_tv(self, col, match):
         return self.TVShow[col].str.contains(match).sum()
 
-    def find_video_df(self, match):
-        return None
-
-    def find_tv_df(self, match):
-        return None
-
     def titleTypeCount(self):
         return self.tbasics.groupby(['titleType']).titleType.count()
 
@@ -221,28 +215,3 @@ class IMDB:
         df['S'] = df['S'].astype('int64', errors='ignore')
         df['E'] = df['E'].astype('int64', errors='ignore')
         return df
-
-    ####################################
-    # Not used below, will consider removing
-    # Get DataFrame filtered to titleType in the IMDB dataset
-    # some videos/movies might have a title type you might not expect, like video instead of movie
-    # def get_tvMiniSeries(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvMiniSeries")]
-    # def get_tvSpecial(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvSpecial")]
-    # def get_tvPilot(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvPilot")]
-    # def get_video(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "video")]
-    # def get_tvPilot(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "videoGame")]
-    # movies
-    # def get_tvMovie(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvMovie")]
-    # def get_movie(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "movie")]
-    # shorts
-    # def get_tvShort(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "tvShort")]
-    # def get_short(self):
-    #    return self.tbasics.loc[(self.tbasics['titleType'] == "short")]
