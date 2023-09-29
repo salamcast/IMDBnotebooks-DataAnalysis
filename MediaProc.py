@@ -55,9 +55,22 @@ def group_tvshows(df):
     enum = enum.sort_values(by="averageRating").reset_index()
 
     return enum
+# TV Shows
+def group_tvshows_season(df):
+    ep = df.groupby('S').E.count()
+    mins = df.groupby('S').minutes.sum()
+    rate = df.groupby('S').averageRating.sum()
+    votes = df.groupby('S').numVotes.sum()
+    enum = pd.DataFrame(ep)
+    enum['minutes'] = mins
+    enum['averageRating'] = rate / enum['E']
+    enum['numVotes'] = votes
+    enum = enum.sort_values(by="averageRating").reset_index()
+
+    return enum
 
 
-def TVShowAvgRating(DF, fig=(15, 10), x='episodeTitle'):
+def TVShowAvgRating(DF, fig=(15, 10), x='Episode'):
     return DF.plot.line(
         x=x,
         y=['averageRating', 'numVotes'],
@@ -73,7 +86,7 @@ def TVShowAvgRating(DF, fig=(15, 10), x='episodeTitle'):
     )
 
 
-def TVShowRuntime(DF, fig=(15, 10), x='episodeTitle'):
+def TVShowRuntime(DF, fig=(15, 10), x='Episode'):
     return DF.plot.line(
         x=x,
         y=['minutes', 'averageRating'],
